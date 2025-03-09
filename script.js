@@ -16,6 +16,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let touchEndX = 0;
     let touchEndY = 0;
 
+    // Prevent scrolling when touching the game container
+    const container = document.querySelector('.container');
+    container.addEventListener('touchmove', function(e) {
+        // This prevents the whole page from scrolling when touching the game area
+        e.preventDefault();
+    }, { passive: false });
+
     // create the playing board
     function createBoard() {
         for (let i = 0; i < width * width; i++){
@@ -317,6 +324,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function handleTouchStart(e) {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
+
+        e.preventDefault();
     }
 
     // Handle touch move event
@@ -324,8 +333,12 @@ document.addEventListener("DOMContentLoaded", () => {
         touchEndX = e.touches[0].clientX;
         touchEndY = e.touches[0].clientY;
 
-        // Prevent default behavior to stop page scrolling
-        e.preventDefault();
+        // If the swipe is significant enough (to prevent tiny movements triggering game actions)
+        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+            // Prevent default behavior to stop page scrolling/refreshing
+            e.preventDefault();
+            e.stopPropagation(); // Also stop event bubbling
+        }
     }
 
     // Handle touch end event
@@ -333,19 +346,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
 
-        // Determine the direction of the swipe
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            if (deltaX > 0) {
-                keyRight(); // swipe right
+        const minSwipeDistance = 30; // pixels
+
+        // Only process swipe if it's a deliberate movement
+        if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+            // Determine the direction of the swipe
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe detected
+                if (deltaX > 0) {
+                    keyRight(); // swipe right
+                } else {
+                    keyLeft(); // swipe left
+                }
             } else {
-                keyLeft(); // swipe left
+                // Vertical swipe detected
+                if (deltaY > 0) {
+                    keyDown(); // swipe down
+                } else {
+                    keyUp(); // swipe up
+                }
             }
-        } else {
-            if (deltaY > 0) {
-                keyDown(); // swipe down
-            } else {
-                keyUp(); // swipe up
-            }
+        }
+
+        // Prevent any default action after touch ends
+        if (e && e.preventDefault) {
+            e.preventDefault();
         }
     }
 
