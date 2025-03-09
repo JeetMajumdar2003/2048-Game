@@ -323,6 +323,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function handleTouchMove(e) {
         touchEndX = e.touches[0].clientX;
         touchEndY = e.touches[0].clientY;
+
+        // Prevent default behavior to stop page scrolling
+        e.preventDefault();
     }
 
     // Handle touch end event
